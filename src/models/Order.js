@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { generateTrackingId } from "../utils/generateTrackingId";
 
 const { Schema, model } = mongoose;
 
@@ -17,7 +18,7 @@ const orderSchema = new Schema({
     enum: ["pending", "paid"],
     default: "pending",
   },
-  trackingId: { type: String, required: true },
+  trackingId: generateTrackingId(),
   createdAt: { type: Date, default: Date.now },
   approvedAt: { type: Date },
   cancelledAt: { type: Date },

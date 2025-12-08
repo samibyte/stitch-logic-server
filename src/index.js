@@ -23,6 +23,7 @@ app.use("/api/v1/products", productRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/payment", paymentRouter);
 app.use("/api/v1/suspension", suspensionRouter);
+app.use(errorHandler);
 
 app.get("/", (req, res) => {
   res.send("stitchlogic running fine :)");
