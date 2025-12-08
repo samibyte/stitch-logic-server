@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import connectDB from "./config/db";
-import admin from "firebase-admin";
+import userRoutes from "./routes/userRoutes";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -13,7 +13,7 @@ app.use(cors());
 
 await connectDB();
 
-app.get("/");
+app.use("/api/v1/users", userRoutes);
 
 app.get("/", (req, res) => {
   res.send("stitchlogic running fine :)");
