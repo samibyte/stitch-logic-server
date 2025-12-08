@@ -7,11 +7,11 @@ import {
 } from "../controllers/userController.js";
 import { verifyFBToken } from "../middleware/auth.js";
 
-const userRoutes = express.Router();
+const router = express.Router();
 
-userRoutes.get("/", getUsers);
-userRoutes.get("/:email", verifyFBToken, getUserByEmail);
-userRoutes.post("/", createUser);
-userRoutes.patch("/:id/:role", verifyFBToken, updateUserRole);
+router.get("/", getUsers);
+router.get("/:email", verifyFBToken, getUserByEmail);
+router.post("/", createUser);
+router.patch("/:id/:role", verifyFBToken, updateUserRole);
 
-export default userRoutes;
+export default router;
