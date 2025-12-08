@@ -5,6 +5,8 @@ import connectDB from "./config/db.js";
 import userRouter from "./routes/userRoutes.js";
 import productRouter from "./routes/productRoutes.js";
 import orderRouter from "./routes/orderRoutes.js";
+import paymentRouter from "./routes/paymentRoutes.js";
+import suspensionRouter from "./routes/suspensionRoutes.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -19,6 +21,8 @@ await connectDB();
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/orders", orderRouter);
+app.use("/api/v1/payment", paymentRouter);
+app.use("/api/v1/suspension", suspensionRouter);
 
 app.get("/", (req, res) => {
   res.send("stitchlogic running fine :)");
