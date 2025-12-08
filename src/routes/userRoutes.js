@@ -4,14 +4,14 @@ import {
   getUserByEmail,
   getUsers,
   updateUserRole,
-} from "../controllers/userController";
-import { verifyFBToken } from "../middleware/auth";
+} from "../controllers/userController.js";
+import { verifyFBToken } from "../middleware/auth.js";
 
-const router = express.Router();
+const userRoutes = express.Router();
 
-router.get("/", verifyFBToken, getUsers);
-router.get("/:email", verifyFBToken, getUserByEmail);
-router.post("/", createUser);
-router.patch("/:id/:role", verifyFBToken, updateUserRole);
+userRoutes.get("/", getUsers);
+userRoutes.get("/:email", verifyFBToken, getUserByEmail);
+userRoutes.post("/", createUser);
+userRoutes.patch("/:id/:role", verifyFBToken, updateUserRole);
 
 export default userRoutes;
