@@ -4,6 +4,7 @@ import "dotenv/config";
 import connectDB from "./config/db.js";
 import userRouter from "./routes/userRoutes.js";
 import productRouter from "./routes/productRoutes.js";
+import orderRouter from "./routes/orderRoutes.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -17,6 +18,7 @@ await connectDB();
 // routes
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/products", productRouter);
+app.use("/api/v1/orders", orderRouter);
 
 app.get("/", (req, res) => {
   res.send("stitchlogic running fine :)");
