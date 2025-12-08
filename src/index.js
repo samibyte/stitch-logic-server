@@ -7,6 +7,7 @@ import productRouter from "./routes/productRoutes.js";
 import orderRouter from "./routes/orderRoutes.js";
 import paymentRouter from "./routes/paymentRoutes.js";
 import suspensionRouter from "./routes/suspensionRoutes.js";
+import { errorHandler } from "./middlewares/errorHandler.js";
 
 const app = express();
 const port = process.env.PORT || 3000;

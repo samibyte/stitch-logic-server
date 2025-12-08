@@ -5,11 +5,11 @@ import {
   getUsers,
   updateUserRole,
 } from "../controllers/userController.js";
-import { verifyFBToken } from "../middleware/auth.js";
+import { verifyFBToken } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.get("/", getUsers);
+router.get("/", verifyFBToken, getUsers);
 router.get("/:email", verifyFBToken, getUserByEmail);
 router.post("/", createUser);
 router.patch("/:id/:role", verifyFBToken, updateUserRole);
