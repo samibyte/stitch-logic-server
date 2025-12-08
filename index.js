@@ -13,6 +13,7 @@ app.use(cors());
 
 await connectDB();
 
+// routes
 app.use("/api/v1/users", userRoutes);
 
 app.get("/", (req, res) => {
