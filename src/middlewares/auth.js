@@ -1,18 +1,23 @@
+// middleware/auth.js
 import admin from "../config/firebase.js";
 
 export const verifyFBToken = async (req, res, next) => {
-  const authHeader = req.headers.authorization || req.get("Authorization");
-
-  if (!authHeader)
-    return res.status(401).json({ message: "Unauthorized access" });
-
-  const token = authHeader.split(" ")[1]; // "Bearer <token>"
-
   try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader?.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Missing or invalid token" });
+    }
+
+    const token = authHeader.split("Bearer ")[1].trim();
     const decoded = await admin.auth().verifyIdToken(token);
-    req.decoded_email = decoded.email;
+
+    req.authUser = decoded;
+    req.firebaseUid = decoded.uid;
+
     next();
-  } catch (error) {
-    return res.status(401).json({ message: "Unauthorized access" });
+  } catch (err) {
+    console.error("verifyFBToken error:", err);
+    res.status(401).json({ message: "Unauthorized" });
   }
 };

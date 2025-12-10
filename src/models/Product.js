@@ -11,9 +11,9 @@ const productSchema = new Schema({
   minOrderQuantity: { type: Number, required: true },
   images: [{ type: String, trim: true }],
   demoVideo: { type: String, trim: true },
-  paymentOptions: [{ type: String, enum: ["COD", "PayFast"] }],
+  paymentOptions: [{ type: String, enum: ["COD", "PayFirst"] }],
   showOnHome: { type: Boolean, default: false },
-  createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  firebaseUid: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
 });
 
