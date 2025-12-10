@@ -46,13 +46,13 @@ export const getUserByEmail = async (req, res) => {
  */
 export const createUser = async (req, res) => {
   try {
-    const { name, email, photoURL, role, status } = req.body;
+    const { displayName, email, photoURL, role, status } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.json({ message: "User already exists" });
 
     const newUser = new User({
-      name,
+      displayName,
       email,
       photoURL,
       role: role || "buyer",
