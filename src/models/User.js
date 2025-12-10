@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const userSchema = new Schema({
+  firebaseUid: { type: String, required: true },
   displayName: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true },
   photoURL: { type: String },
