@@ -30,7 +30,7 @@ export const getUsers = async (req, res) => {
  */
 export const getUserByEmail = async (req, res) => {
   try {
-    const email = req.params.email;
+    const { email } = req.params;
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 

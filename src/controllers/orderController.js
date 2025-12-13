@@ -1,5 +1,4 @@
 import Order from "../models/Order.js";
-
 /**
  * Get orders (Admin: all, Buyer: own orders)
  */

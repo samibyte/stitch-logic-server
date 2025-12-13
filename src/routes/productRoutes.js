@@ -5,12 +5,14 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  getMyProducts,
 } from "../controllers/productController.js";
 import { verifyFBToken } from "../middlewares/auth.js";
 import { checkRole } from "../middlewares/roleCheck.js";
 
 const router = express.Router();
 
+router.get("/my-products", verifyFBToken, getMyProducts);
 router.get("/", getAllProducts);
 router.get("/:id", getProductById);
 router.post("/", verifyFBToken, checkRole("manager"), createProduct);

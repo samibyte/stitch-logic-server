@@ -12,7 +12,7 @@ import { verifyFBToken } from "../middlewares/auth.js";
 const router = express.Router();
 
 router.get("/", verifyFBToken, getUsers);
-router.get("/:email", verifyFBToken, getUserByEmail);
+router.get("/:email/role", verifyFBToken, getUserByEmail);
 router.post("/", createUser);
 router.patch("/:id", verifyFBToken, updateUser);
 router.patch("/:id/:role", verifyFBToken, updateUserRole);

@@ -15,9 +15,7 @@ export const getAllProducts = async (req, res) => {
       ];
     }
 
-    const products = await Product.find(query)
-      .sort({ createdAt: -1 })
-      .limit(50);
+    const products = await Product.find(query).sort({ createdAt: -1 });
     res.json(products);
   } catch (err) {
     console.error(err);
@@ -35,6 +33,18 @@ export const getProductById = async (req, res) => {
     res.json(product);
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getMyProducts = async (req, res) => {
+  try {
+    const products = await Product.find({
+      firebaseUid: req.firebaseUid,
+    });
+
+    res.json(products);
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 };

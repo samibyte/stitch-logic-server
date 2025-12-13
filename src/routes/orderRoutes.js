@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get("/", verifyFBToken, getOrders);
 router.get("/:id", verifyFBToken, getOrderById);
-router.post("/", verifyFBToken, checkRole("buyer"), createOrder);
+router.post("/", verifyFBToken, createOrder);
 router.patch("/:id", verifyFBToken, checkRole("manager"), updateOrderStatus);
 
 export default router;

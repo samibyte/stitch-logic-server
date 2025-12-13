@@ -13,7 +13,9 @@ const productSchema = new Schema({
   demoVideo: { type: String, trim: true },
   paymentOptions: [{ type: String, enum: ["COD", "PayFirst"] }],
   showOnHome: { type: Boolean, default: false },
-  firebaseUid: { type: String, required: true },
+  manager: {
+    firebaseUid: { type: String, required: true },
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

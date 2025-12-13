@@ -1,4 +1,3 @@
-// middleware/auth.js
 import admin from "../config/firebase.js";
 
 export const verifyFBToken = async (req, res, next) => {
