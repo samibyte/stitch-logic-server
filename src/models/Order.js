@@ -4,21 +4,19 @@ import { generateTrackingId } from "../utils/generateTrackingId.js";
 const { Schema, model } = mongoose;
 
 const orderSchema = new Schema({
-  // Buyer identity via Firebase
-  buyerFirebaseUid: { type: String, required: true, trim: true },
-
-  // Buyer booking form info
-  email: { type: String, required: true, trim: true },
-  firstName: { type: String, required: true, trim: true },
-  lastName: { type: String, required: true, trim: true },
-  contactNumber: { type: String, required: true, trim: true },
-  deliveryAddress: { type: String, required: true, trim: true },
-  notes: { type: String, trim: true },
+  // Buyer booking form
+  buyer: {
+    firebaseUid: { type: String, required: true, trim: true },
+    email: { type: String, required: true, trim: true },
+    firstName: { type: String, required: true, trim: true },
+    lastName: { type: String, required: true, trim: true },
+    contactNumber: { type: String, required: true, trim: true },
+    deliveryAddress: { type: String, required: true, trim: true },
+    notes: { type: String, trim: true },
+  },
 
   // Product reference
   product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
-  productTitle: { type: String, required: true, trim: true },
-  productPrice: { type: Number, required: true },
   paymentOption: { type: String, enum: ["COD", "PayFirst"], required: true },
   quantity: { type: Number, required: true },
   orderPrice: { type: Number, required: true },
