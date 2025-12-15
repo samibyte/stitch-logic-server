@@ -3,22 +3,60 @@ import User from "../models/User.js";
 
 /**
  * Get all users
- * Optional query: searchText
  */
 export const getUsers = async (req, res) => {
   try {
-    const searchText = req.query.searchText;
+    const { searchText, role, status, page = 1, limit = 10 } = req.query;
     const query = {};
 
+    // Search filter
     if (searchText) {
       query.$or = [
-        { name: { $regex: searchText, $options: "i" } },
+        { displayName: { $regex: searchText, $options: "i" } },
         { email: { $regex: searchText, $options: "i" } },
       ];
     }
 
-    const users = await User.find(query).sort({ createdAt: -1 }).limit(20);
-    res.json(users);
+    // Role filter
+    if (role && role !== "all") {
+      query.role = role;
+    }
+
+    // Status filter
+    if (status && status !== "all") {
+      query.status = status;
+    }
+
+    // Pagination
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Get total count for pagination
+    const total = await User.countDocuments(query);
+
+    // Get paginated users
+    const users = await User.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(total / limitNum);
+    const hasNextPage = pageNum < totalPages;
+    const hasPrevPage = pageNum > 1;
+
+    res.json({
+      users,
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        totalItems: total,
+        hasNextPage,
+        hasPrevPage,
+        itemsPerPage: limitNum,
+      },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -76,11 +114,11 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    const { displayName, email, role } = req.body;
+    const { displayName, email, role, status } = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { displayName, email, role },
+      { displayName, email, role, status },
       { new: true }
     );
 
