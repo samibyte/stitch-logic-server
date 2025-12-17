@@ -1,3 +1,4 @@
+// models/Product.js
 import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
@@ -15,6 +16,8 @@ const productSchema = new Schema({
   showOnHome: { type: Boolean, default: false },
   manager: {
     firebaseUid: { type: String, required: true },
+    displayName: { type: String },
+    email: { type: String },
   },
   createdAt: { type: Date, default: Date.now },
 });

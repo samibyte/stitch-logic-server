@@ -1,6 +1,6 @@
 import User from "../models/User.js";
 
-export const checkRole = (...allowedRoles) => {
+export const checkRole = (allowedRoles) => {
   return async (req, res, next) => {
     try {
       const firebaseUid = req.firebaseUid;
