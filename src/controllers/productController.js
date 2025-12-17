@@ -1,4 +1,3 @@
-// controllers/productController.js
 import Product from "../models/Product.js";
 
 /**
@@ -12,6 +11,8 @@ export const getAllProducts = async (req, res) => {
       category,
       price,
       showOnHome,
+      sortBy = "createdAt",
+      sortOrder = "desc",
       page = 1,
       limit = 10,
     } = req.query;
@@ -45,24 +46,36 @@ export const getAllProducts = async (req, res) => {
     }
 
     // Pagination
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
+    const pageNum = Number(page);
+    const limitNum = Number(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    // Get total count for pagination
+    //Sort order
+    const allowedSortFields = ["createdAt", "name", "price"];
+    if (!allowedSortFields.includes(sortBy)) {
+      return res.status(400).json({ message: "Invalid sort field" });
+    }
+
+    const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+
+    const sortDirection = sortOrder === "asc" ? 1 : -1;
+
+    const sortOptions = {
+      [sortField]: sortDirection,
+      _id: 1,
+    };
+
+    // Total count
     const total = await Product.countDocuments(query);
 
-    // Get paginated products
-    // Note: Your schema uses "manager" field, not "createdBy"
+    // Fetch products
     const products = await Product.find(query)
-      .sort({ createdAt: -1 })
+      .sort(sortOptions)
       .skip(skip)
       .limit(limitNum);
 
-    // Calculate pagination info
+    // Pagination info
     const totalPages = Math.ceil(total / limitNum);
-    const hasNextPage = pageNum < totalPages;
-    const hasPrevPage = pageNum > 1;
 
     res.json({
       products,
@@ -70,8 +83,8 @@ export const getAllProducts = async (req, res) => {
         currentPage: pageNum,
         totalPages,
         totalItems: total,
-        hasNextPage,
-        hasPrevPage,
+        hasNextPage: pageNum < totalPages,
+        hasPrevPage: pageNum > 1,
         itemsPerPage: limitNum,
       },
     });
@@ -147,7 +160,6 @@ export const getMyProducts = async (req, res) => {
 export const createProduct = async (req, res) => {
   try {
     // Add manager info from authenticated user
-    // Assuming req.firebaseUid, req.displayName, req.email are set from auth middleware
     const productData = {
       ...req.body,
       manager: {
@@ -202,7 +214,7 @@ export const updateProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // If user is manager (not admin), check if they own the product
+    // If user is manager, check if they own the product
     if (
       req.role === "manager" &&
       existingProduct.manager.firebaseUid !== req.firebaseUid
@@ -322,7 +334,7 @@ export const deleteProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // If user is manager (not admin), check if they own the product
+    // If user is manager, check if they own the product
     if (
       req.role === "manager" &&
       product.manager.firebaseUid !== req.firebaseUid
