@@ -13,6 +13,7 @@ export const verifyFBToken = async (req, res, next) => {
 
     req.authUser = decoded;
     req.firebaseUid = decoded.uid;
+    req.email = decoded.email;
 
     next();
   } catch (err) {
