@@ -57,7 +57,7 @@ export const getMyOrders = async (req, res) => {
 
     const total = await Order.countDocuments(query);
     const orders = await Order.find(query)
-      .populate("product")
+      .populate("productId")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);
@@ -108,7 +108,7 @@ export const getAllOrders = async (req, res) => {
 
     const total = await Order.countDocuments(query);
     const orders = await Order.find(query)
-      .populate("product")
+      .populate("productId")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);
@@ -140,7 +140,7 @@ export const getAllOrders = async (req, res) => {
 export const getOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
-      .populate("product")
+      .populate("productId")
       .select("+trackingUpdates");
 
     if (!order) {
@@ -418,80 +418,83 @@ export const getApprovedOrders = async (req, res) => {
 export const getOrderTracking = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
-      .populate("product")
+      .populate("productId")
       .select("trackingId buyer trackingUpdates createdAt status");
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
 
-    // Check authorization
-    if (req.role === "buyer") {
-      // Buyer can only view their own orders
-      if (order.buyer.firebaseUid !== req.firebaseUid) {
-        return res.status(403).json({ message: "Unauthorized access" });
-      }
+    // Authorization checks (same as before)
+    if (req.role === "buyer" && order.buyer.firebaseUid !== req.firebaseUid) {
+      return res.status(403).json({ message: "Unauthorized access" });
     } else if (req.role === "manager") {
-      // Manager can only view orders for their products
       const product = await Product.findById(order.productId);
       if (!product || product.manager.firebaseUid !== req.firebaseUid) {
-        return res.status(403).json({
-          message: "Unauthorized to view this order",
-        });
+        return res.status(403).json({ message: "Unauthorized" });
       }
     }
 
-    // Format tracking updates with better structure
-    const trackingData = {
-      orderId: order._id,
+    // 1. Define the Strict Order of Operations
+    const STEPS = [
+      "Cutting Completed",
+      "Sewing Started",
+      "Finishing",
+      "QC Checked",
+      "Packed",
+      "Shipped",
+      "Out for Delivery",
+      "Delivered",
+    ];
+
+    // 2. Find the index of the furthest step the order has reached
+    // We look at all updates in the DB and find which one is furthest down our list
+    let highestStepIndex = -1;
+
+    order.trackingUpdates.forEach((update) => {
+      const index = STEPS.indexOf(update.status);
+      if (index > highestStepIndex) {
+        highestStepIndex = index;
+      }
+    });
+
+    // 3. Build the smart timeline
+    const timeline = STEPS.map((stepName, index) => {
+      // Find the specific log for this step (if it exists)
+      const exactLog = order.trackingUpdates.find((u) => u.status === stepName);
+
+      return {
+        status: stepName,
+        // CRITICAL FIX: A step is complete if its index is <= the highest reached step
+        completed: index <= highestStepIndex,
+        // If we have real data (timestamp/location), return it.
+        // If it's an "implicit" completion (skipped step), return null or a placeholder.
+        update: exactLog
+          ? {
+              location: exactLog.location,
+              note: exactLog.note,
+              updatedAt: exactLog.updatedAt,
+            }
+          : null, // No specific log, but logically completed
+      };
+    });
+
+    // 4. Determine the "Current" status (The single latest update)
+    const lastUpdateLog =
+      order.trackingUpdates[order.trackingUpdates.length - 1];
+
+    const response = {
       trackingId: order.trackingId,
-      createdAt: order.createdAt,
       status: order.status,
       buyer: {
         name: `${order.buyer.firstName} ${order.buyer.lastName}`,
         email: order.buyer.email,
       },
-      trackingUpdates: order.trackingUpdates.map((update) => ({
-        _id: update._id,
-        status: update.status,
-        location: update.location,
-        note: update.note,
-        imageUrl: update.imageUrl,
-        updatedAt: update.updatedAt,
-      })),
-      // For timeline view, get all possible statuses with their completion state
-      timeline: [
-        "Cutting Completed",
-        "Sewing Started",
-        "Finishing",
-        "QC Checked",
-        "Packed",
-        "Shipped",
-        "Out for Delivery",
-        "Delivered",
-      ].map((status) => {
-        const update = order.trackingUpdates.find((u) => u.status === status);
-        return {
-          status,
-          completed: !!update,
-          update: update
-            ? {
-                location: update.location,
-                note: update.note,
-                imageUrl: update.imageUrl,
-                updatedAt: update.updatedAt,
-              }
-            : null,
-        };
-      }),
-      // Last tracking update for quick reference
-      lastUpdate:
-        order.trackingUpdates.length > 0
-          ? order.trackingUpdates[order.trackingUpdates.length - 1]
-          : null,
+      timeline, // The new smart timeline
+      lastUpdate: lastUpdateLog || null,
     };
 
-    res.json(trackingData);
+    res.json(response);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -580,62 +583,6 @@ export const addTrackingUpdate = async (req, res) => {
         status: order.status,
       },
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-export const getOrderForTrackingPage = async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.id).populate({
-      path: "product",
-      select: "name price images category specifications",
-    });
-
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
-    }
-
-    // Check authorization
-    if (req.role === "buyer") {
-      if (order.buyer.firebaseUid !== req.firebaseUid) {
-        return res.status(403).json({ message: "Unauthorized access" });
-      }
-    } else if (req.role === "manager") {
-      const product = await Product.findById(order.productId);
-      if (!product || product.manager.firebaseUid !== req.firebaseUid) {
-        return res.status(403).json({
-          message: "Unauthorized to view this order",
-        });
-      }
-    }
-
-    // Structure response for tracking page
-    const response = {
-      order: {
-        _id: order._id,
-        trackingId: order.trackingId,
-        status: order.status,
-        createdAt: order.createdAt,
-        approvedAt: order.approvedAt,
-        quantity: order.quantity,
-        orderPrice: order.orderPrice,
-        paymentStatus: order.paymentStatus,
-        paymentOption: order.paymentOption,
-      },
-      buyer: {
-        name: `${order.buyer.firstName} ${order.buyer.lastName}`,
-        email: order.buyer.email,
-        contactNumber: order.buyer.contactNumber,
-        deliveryAddress: order.buyer.deliveryAddress,
-        notes: order.buyer.notes,
-      },
-      product: order.product,
-      trackingUpdates: order.trackingUpdates,
-    };
-
-    res.json(response);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

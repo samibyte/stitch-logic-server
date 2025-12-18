@@ -19,7 +19,7 @@ const router = express.Router();
 
 // Buyer routes
 router.post("/", verifyFBToken, checkRole(["buyer"]), createOrder);
-router.get("/my", verifyFBToken, checkRole(["buyer"]), getMyOrders);
+router.get("/my/orders", verifyFBToken, checkRole(["buyer"]), getMyOrders);
 router.patch("/:id/cancel", verifyFBToken, checkRole(["buyer"]), cancelOrder);
 
 // Shared - all authenticated users can view tracking
