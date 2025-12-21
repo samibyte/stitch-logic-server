@@ -10,6 +10,7 @@ import {
   bulkUpdateShowOnHome,
   getProductStats,
   getProductCategories,
+  getHomeProducts,
 } from "../controllers/productController.js";
 import { verifyFBToken } from "../middlewares/auth.js";
 import { checkRole } from "../middlewares/roleCheck.js";
@@ -18,6 +19,7 @@ const router = express.Router();
 
 // Public routes
 router.get("/", getAllProducts);
+router.get("/home", getHomeProducts);
 router.get("/stats", getProductStats);
 router.get("/categories", getProductCategories);
 router.get("/:id", getProductById);

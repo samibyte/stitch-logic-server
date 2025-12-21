@@ -94,6 +94,19 @@ export const getAllProducts = async (req, res) => {
   }
 };
 
+export const getHomeProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ showOnHome: true })
+      .sort({ createdAt: -1 })
+      .limit(6);
+
+    res.json(products);
+  } catch (err) {
+    console.error("Error fetching home products:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 /**
  * Get single product by ID
  */
