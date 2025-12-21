@@ -163,9 +163,9 @@ export const createProduct = async (req, res) => {
     const productData = {
       ...req.body,
       manager: {
-        firebaseUid: req.firebaseUid,
-        displayName: req.displayName || "Manager",
-        email: req.email || "",
+        firebaseUid: req.user.firebaseUid,
+        displayName: req.user.displayName || "Manager",
+        email: req.user.email || "",
       },
     };
 
