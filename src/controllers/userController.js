@@ -114,11 +114,12 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const userId = req.params.id;
-    const { displayName, email, role, status } = req.body;
+    const { displayName, email, role, status, suspendReason, suspendFeedback } =
+      req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { displayName, email, role, status },
+      { displayName, email, role, status, suspendReason, suspendFeedback },
       { new: true }
     );
 

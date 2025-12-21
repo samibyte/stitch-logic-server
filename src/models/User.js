@@ -13,6 +13,8 @@ const userSchema = new Schema({
     enum: ["pending", "active", "suspended"],
     default: "pending",
   },
+  suspendReason: { type: String },
+  suspendFeedback: { type: String, trim: true },
   createdAt: { type: Date, default: Date.now },
 });
 
