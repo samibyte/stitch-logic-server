@@ -1,17 +1,38 @@
+import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
+import User from "../models/User.js";
 
 /**
  * Create a new order (Buyer only)
  */
 export const createOrder = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { productId, paymentOption, quantity, buyer } = req.body;
+    const firebaseUid = req.firebaseUid;
 
-    // Fetch product
-    const product = await Product.findById(productId);
+    const currentBuyer = await User.findOne({ firebaseUid }).session(session);
+
+    if (!currentBuyer) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (currentBuyer.status === "suspended") {
+      return res.status(400).json({
+        message: "Your account is suspended. Orders are not allowed.",
+      });
+    }
+
+    const product = await Product.findById(productId).session(session);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
+    }
+
+    if (product.availableQuantity < quantity) {
+      return res.status(400).json({ message: "Insufficient stock available" });
     }
 
     const orderPrice = quantity * product.price;
@@ -20,7 +41,7 @@ export const createOrder = async (req, res) => {
     const order = new Order({
       buyer: {
         ...buyer,
-        firebaseUid: req.firebaseUid,
+        firebaseUid,
         email: req.email,
       },
       productId: product._id,
@@ -32,13 +53,19 @@ export const createOrder = async (req, res) => {
 
     product.availableQuantity -= quantity;
 
-    await order.save();
-    await product.save();
+    await order.save({ session });
+    await product.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.status(201).json(order);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    await session.abortTransaction();
+    session.endSession();
+
+    console.error("Order Creation Error:", err);
+    res.status(500).json({ message: "Server error during order processing" });
   }
 };
 
