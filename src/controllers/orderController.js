@@ -55,7 +55,7 @@ export const createOrder = async (req, res) => {
           },
         ],
         success_url: `${process.env.CLIENT_URL}/?payment_success=true&id=${order.trackingId}`,
-        cancel_url: `${process.env.CLIENT_URL}/product/${product._id}`,
+        cancel_url: `${process.env.CLIENT_URL}/products/${product._id}`,
         metadata: { orderId: order._id.toString() },
       });
       checkoutUrl = stripeSession.url;
