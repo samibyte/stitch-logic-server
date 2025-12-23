@@ -1,29 +1,40 @@
-import Payment from "../models/Payment.js";
+import Stripe from "stripe";
+import Order from "../models/Order.js";
 
-/**
- * Create payment record
- */
-export const createPayment = async (req, res) => {
-  try {
-    const payment = new Payment(req.body);
-    const savedPayment = await payment.save();
-    res.status(201).json(savedPayment);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-/**
- * Get payment by orderId
- */
-export const getPaymentByOrder = async (req, res) => {
+export const handleStripeWebhook = async (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  let event;
+
   try {
-    const payment = await Payment.findOne({ orderId: req.params.orderId });
-    if (!payment) return res.status(404).json({ message: "Payment not found" });
-    res.json(payment);
+    // Verify that the request actually came from Stripe
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      sig,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    console.error("Webhook Signature Verification Failed:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
+
+  // Handle the specific event
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+    const orderId = session.metadata.orderId;
+
+    try {
+      // Update your Order schema based on the logic we discussed
+      await Order.findByIdAndUpdate(orderId, {
+        paymentStatus: "paid",
+        status: "approved", // Optional: Auto-approve if paid
+      });
+      console.log(`Order ${orderId} marked as PAID`);
+    } catch (dbErr) {
+      console.error("Database update failed during webhook:", dbErr);
+    }
+  }
+
+  res.json({ received: true });
 };

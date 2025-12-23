@@ -8,8 +8,15 @@ import orderRouter from "./routes/orderRoutes.js";
 import paymentRouter from "./routes/paymentRoutes.js";
 import suspensionRouter from "./routes/suspensionRoutes.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
+import { handleStripeWebhook } from "./controllers/paymentController.js";
 
 const app = express();
+
+app.post(
+  "/api/v1/payment/webhook",
+  express.raw({ type: "application/json" }),
+  handleStripeWebhook
+);
 
 // middleware
 app.use(express.json());
