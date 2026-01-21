@@ -98,7 +98,7 @@ export const getHomeProducts = async (req, res) => {
   try {
     const products = await Product.find({ showOnHome: true })
       .sort({ createdAt: -1 })
-      .limit(6);
+      .limit(8);
 
     res.json(products);
   } catch (err) {
@@ -318,7 +318,7 @@ export const bulkUpdateShowOnHome = async (req, res) => {
     // Update all products
     await Product.updateMany(
       { _id: { $in: productIds } },
-      { $set: { showOnHome } }
+      { $set: { showOnHome } },
     );
 
     // Get updated products
